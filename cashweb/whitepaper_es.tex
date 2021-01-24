@@ -1,0 +1,299 @@
+\documentclass{article}
+
+\usepackage{auto-pst-pdf}
+\usepackage{arxiv}
+\usepackage{graphics}
+\usepackage{float}
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage{hyperref}    % hyperlinks
+\usepackage{url}      % simple URL typesetting
+\usepackage{msc}
+\usepackage[english]{babel}
+
+\usepackage[
+backend=biber,
+style=numeric
+]{biblatex}
+\addbibresource{citations.bib}
+
+\newcommand{\chapquote}[2]{\begin{quotation} \textit{#1} \end{quotation} \begin{flushright} - #2\end{flushright} }
+\renewcommand{\thefootnote}{\textit{\alph{footnote}}}
+
+\drawframe{no}
+\setlength{\instdist}{5cm}
+\setlength{\instwidth}{2.5cm}
+\setlength{\envinstdist}{3cm}
+\setlength{\actionwidth}{3.5cm}
+
+\title{CashWeb}
+
+\author{
+  Shammah Chancellor \\
+  \texttt{shammah.chancellor@cashweb.io} \\
+  ,
+  Harry Barber \\
+  \texttt{harry.barber@cashweb.io} \\
+  y
+  David Schlesinger \\
+  \texttt{david@cashweb.io} \\
+}
+
+\begin{document}
+\maketitle
+
+\beginResumen{abstract}
+Presentamos un conjunto de protocolos estándares abiertos que proporcionan una mensajeria instantanea con mitigación de abusos sin necesidad de un moderador de contenidos. Añadiendo pequeños pagos en criptomonedas a cada mensaje se puede obviar la moderación de contenidos. Todos los mensajes son cifrados para proteger la privacidad del usuario. Utiliza una topología de red federada, similar a XMPP y SMTP, que proporciona la escalabilidad necesaria para reemplazar convenientemente a la infraestructura de mensajes existente. 
+\end{abstract}
+
+\section{Introduction}
+
+\subsection{Historia}
+
+Los pioneros vieron internet como una plataforma para compartir nuevas ideas y recibir retroalimentación de forma rápida y barata. Sistemas como Usenet\supercite{rfc5536}\supercite{rfc5537}, Email\supercite{rfc5322}\supercite{rfc1939}\supercite{rfc5321}\supercite{rfc4551}, y XMPP\supercite{rfc3920}\supercite{rfc3921}\supercite{rfc3922}\supercite{rfc3923} se construyeron como plataformas descentralizadas por este propósito.
+
+Sin embargo, debido a las inherentes limitaciones de diseño de estos sistemas, es significantemente mas costoso recibir mensajes que enviarlos. El gasto que suponen los mensajes respecto a procesamiento, almacenamiento y atención mental corre por parte del receptor. Esto incentiva el envío de grandes volumenes de mensajes de poco valor. Este coste nos lleva a depender de sistemas centralizados para identificar y filtrar los mensajes ya qe los usuarios delegan autoridad sobre sus comunicaciones e identidades digitales por conveniencia. Como resultado obtenemos una perdida de la privacidad y control de las identidades en línea.
+
+En Junio de 2017 Facebook reportó 2 billones de usuarios. En Octubre de 2018 Gmail reportó 1,5 billones de usuarios activos\supercite{gmail2018} y Cloudflare enrutó el 10\% de todo el tráfico de internet\supercite{cloudflare2018}. En junio de 2020, Google, Apple y Microsoft contaban con un total del 8\% del total de cuota de mercado de clientes de correo\supercite{emailshare2020}. Confiamos en unas pocas compañias que deben gestionar servicios críticos de internet de forma honesta y segura. Servicios críticos que no son la fuente de ingresos de esas compañias.
+
+La centralización de internet en unas pocas grandes plataformas, aunque proporcionan el beneficio de una experiencia conveniente en la web, han resultado en la inabilidad de construir alternativas descentralizadas con experiencia similar. Sin embargo, desde el desarrollo de Bitcoin\supercite{nakamoto2008bpp}, es posible construir sistemas descentralizados que proporcionen la conveniencia que los usuarios esperan del internet actual. Los protocolos CashWeb usan el apalancamiento de las criptomonedas para proporcionar una experiencia en linea perfecta, resturando la autoridad de los usuarios sobre su identidad digital y su privacidad. 
+
+\subsection{Fuerzas de Centralización}
+
+\subsubsection{Gestión de identidad}
+
+En el pasado, los servicios de acceso a internet (ISPs) ofrecían servicios de correo electrónico a sus clientes. Esto significaba que cuando un usuario se cambiaba de residencia o queria cambiar el proveedor de acceso, su dirección de correo también cambiaba (p.e. john.doe@sonic.net). El uso de cuentas de correo proporcianadas por compañias globales, como Google y Microsoft, evitaba a los usuarios el esfuerzo asociado con la actualización de sus contactos y la perdida potencial de comunicaciones valiosas.
+
+Delegar la gestión de las cuentas de correo a negocios de terceras partes ha supuesto que las identidades digitales sean menos transitivas. Como resultado, compañias y usuarios han empezado a delegar en ellas para comunicaciones importantes y la identidad digital. Actualmente es la raiz de nuestra identidad en línea y proporciona mecanismos de autenticación que usamos para entrar en la mayoría de los sitios web. Hoy, la perdida de acceso a nuestro correo se ha convertido en un evento que nos altera la vida con consecuencías significativas. Mantener el acceso a nuestro correo electrónico puede escapar a nuestro control, puesto que una contraseña comprometida o un enjuiciamiento de nuestro proveedor pueden resultarnos una perdida. 
+
+Si quisieramos ahora migrar de proveedor de correo electrónico por motivos personales, se convertiría en una tarea insuperable. Los usuarios pueden verse completamente indefensos para recibir explicaciones de sus proveedores de servicios. Tener nustra identidad en line bajo nuestro único control es de una importancia vital.
+
+\subsubsection{Contenido no deseado}
+
+Aunque el correo electronico se concibió como un sistema de mensajes persona a persona y maquina a maquina, la mayoría de los mensajes ahora son maquina a persona. Estos mensajes a menudo consisten en anuncios inútiles, pero requieren el procesamiento y la atención humana para evaluarlos e identificarlos antes de eliminarlos. Los proveedores de correo a gran escala (p.e. Gmail\footnote{\url{https://mail.google.com}} y Hotmail\footnote{\url{https://outlook.live.com}}) se benefician de su volumen de mensajes para ser capaz de identificar mensajes similares enviados a un gran número de diferentes clientes para filtrarlos.
+
+Ironicamente, compañias con las que hacemos negocios estan enviando mas mensajes de marketing para que las eligamos. Estos son en gra medida servidos sin filtro por las plataformas centralizados a pesar de la promesa original de dichas plataformas de proporcionar a los usuarios solo comunicaciones de alto valor.
+
+Al mismo tiempo, gran parte de nuestras comunicaciones con nuestros conocidos se han movido a plataformas digitales como SMS, Telegram Messenger, WhatsApp, Twitter y Signal. Para disuadir el contenido basura en estas plataformas, requieren proporcionar un número de teléfono, correo o ambos para obtener una cuenta. Si una cuenta comienza a producir demasiado contenido no deseado en estos sitemas, entonces la cuenta se restringe o se elimina y el identificador del telefono o cuenta de correo se prohiben permanentemente. Sin embaro, esto significa que la prevención de contenido no deseado está inexorablemente ligado a nuestra identidad del mundo real en estos sistemas.
+
+\subsubsection{Consecuencias}
+
+Aunque las grandes compañias de servicios nos han proporcionado la conveniencia tan necesaria, ellas a su vez deben generar ingresos para mantener su infraestructura y generar beneficios. Muchos de estos servicios proporcionan acceso al correo electrónico y a sitios web de forma ``gratuita''.
+
+\chapquote{\large ``Si no estas pagando por el producto; el producto eres tu.''}{Robert Danielson}
+
+Algunos proveedores todavía proporcionan acceso a cuentas de correo de pago que ofrecen esencialmente la privacidad como un producto. Sin embargo, estos proveedores todavía tienen acceso a los mismos datos sobre sus usuarios al igual que los servicios gratuitos. Aparece un incentivo financiero para vender estos datos manteniendo un disfraz de privacidad. Independientemente de la etica de los proveedores de pago, los mensajes de correo intercambiados con proveedores de cuentas de correo gratuitas (p.e. Gmail) son indexados y categorizados para publicidad.
+
+En sistemas que no son de correo electrónico, nuestra identidad está cada vez mas ligada a nuestra cuenta de correo o número de telefono. Esta asociación implica que hay una clara asociación entre todas las otras cuentas e interacciones digitales. Siendo capaces de cotejar todos estos datos sobre un usuario, y formar un perfil mas completo, tiene un extremado valor para los anunciantes.
+
+Además, varias compañias (p.e. LiveRamp) compran datos alrededor de servicios múltiples y los cotejan basados en los números de teléfono y las cuentas de correo. La huella digital del dispositivo tambien se emplea para combinar estos datos con los de la historia de la navegación web mientras que proporcionan una forma de asociar las direcciones de correo y números de telefono si los usuarios entran con dos cuentas de correo diferentes en la misma sesión.
+
+El propósito establecido de ello es proporcionar una publicidad altamente específica. Esto podría ser deseable para los usuarios en la busqueda de productos que quieren. Sin embargo, hay muchos otros propositos del uso de estos datos que nos procupan -- como el seguimiento de la actividad en linea de los disidentes politicos. Estos otros usos estan fuera del ámbito de este articulo.
+
+\section{El protocolo CashWeb}
+
+\subsection{Filosofía}
+
+Para proporcionar una alternativa a los sistemas existentes, CashWeb se adhiere a los principios siguientes:
+
+\subsubsection{Simplicidad}
+
+CashWeb debe ser una solución que reuiera una experiancia técnica mínima para atraera a un amplio rango de usuarios. Deberá ser posible usar terceras partes para albergar la operación de los servicios para aquellos que no esten interesados en provisionar sus propios recursos.
+
+Igualmente, el protocolo de base deberá ser tan simple como sea posible para atraer a un amplio rango de desarrolladores.
+
+\subsubsection{Migrabilidad}
+
+Los usuarios deberán tener control sobre el acceso a sus identidades propias, y la posibilidad de migrar de un proveedor a otro. Poder migrar facilmente entre proveedores de servicios posibilita a los usuarios pedir explicaciones a los proveedores de servicios y fomenta una competencia sana.
+
+\subsubsection{Recuperable}
+
+Deberá ser posible una recuperación de una forma atractiva una perdida de identidad. Para hacer transferible la autenticación de un proveedor de servicio a otro, se deberá emplear criptografía asimetrica de forma que la identificación no sea una responsabilidad de los proveedores de servicio de CashWeb. Si un usuario pierde su teléfono o su ordenador, y otra persona obtiene su clave privada, debe poder recuperar su identidad.
+
+\subsubsección{Seguridad \& Privacidad}
+
+El contenido de los mensajes no debe ser legible por terceros, incluidos los proveedores de servicios de CashWeb para proteger la privacidad de los usuarios. Todas las comunicaciones entre dos partes deben ser cifradas de forma predeterminada utilizando estándares bien establecidos como el Standard de Encriptación Avanzada (AES) y la criptografía de curva elíptica (ECC).
+
+Además de la seguridad por defecto, los usuarios deben ser capaces de actualizar su seguridad usando redes de superposición existentes (por ejemplo, Tor).
+
+\subsubsection{Permissionlessness}
+
+El protocolo debe ser de código abierto y deben proporcionarse implementaciones/documentación de referencia bien mantenida. Este modelo proporciona fácil acceso a los potenciales desarrolladores y permitirá el crecimiento en el ecosistema que rodea a CashWeb.
+
+Aunque el protocolo base es abierto y mantenido, las implementaciones individuales de software pueden ser mantenidas privadamente.
+
+\subsubsección{Privacidad escalable}
+
+El protocolo debe permitir a los usuarios determinar su nivel de privacidad deseado. La capa base debe proporcionar mecanismos de protocolo para que los usuarios determinen lo que mantienen privado, mientras que proporciona valores por defecto que son razonables para la mayoría de los usuarios.
+
+\subsubsection{Simplicidad \& Extensibilidad}
+
+El conjunto de características más básico debe ser extremadamente sencillo para permitir un uso ubicuo. También debería ser lo suficientemente extensible como para permitir que las empresas ofrezcan una funcionalidad más complicada sin interrumpir a los usuarios y clientes de software existentes.
+
+\subsubsección{Integrabilidad}
+
+El protocolo debería estar basado en tecnologías web estándar con las que la mayoría de los usuarios y desarrolladores de software ya están familiarizados como HTTP.
+
+\subsección{Conceptos Globales} % ¿Debería tener otro nombre mejor?
+
+Para cumplir con los requisitos descritos anteriormente, el protocolo CashWeb abarca los siguientes conceptos básicos:
+
+\subsubsección{Estándares Web}
+
+El sistema CashWeb se adhiere a los estándares web establecidos para permitir una integración rápida y fácil en los protocolos e infraestructura existentes. Los tokens de estilo "portador'' se utilizan extensivamente en combinación con los estándares de pago de criptomonedas existentes para permitir el acceso autenticado a los recursos que serán comprados con criptomoneda. Los mensajes son enviados y recibidos usando HTTP/2\supercite{rfc7540} y WebSockets\supercite{rfc6455} para permitir el uso de la infraestructura y servicios de internet existentes.
+
+\subsubsección{Cryptomonedas}
+
+Debido a la obligatoriedad de mantener una comunicación segura y la naturaleza sin permisos del sistema CashWeb, resulta poco práctico que una sola parte envíe grandes volúmenes de mensajes no solicitados. Todos los mensajes enviados deben imponer un costo al remitente que se paga al destinatario. Para apoyar este requisito es necesario que los pagos estén en el centro del diseño.
+
+Los sistemas tradicionales requieren de terceros confiables e integraciones complejas con el sistema bancario tradicional. Visionarios, como Hal Finney, concibieron que este problema se resolviera a través de ``pruebas'' de trabajo reutilizable (RPoW). Desafortunadamente, el diseño original de Finney era poco práctico debido a la necesidad de una gestión centralizada de los tokens de RPoW. Sin embargo, esta idea ahora se puede realizar mediante el uso de sistemas de efectivo digital peer-to-peer como Bitcoin (BTC).
+
+La utilización de una criptomoneda en lugar de las integraciones bancarias tradicionales, sinergiza bien con una comunicación segura, abierta y sin permisos. Las mismas claves pueden utilizarse para enviar y recibir fondos que se utilizan para proporcionar cifrado de mensajes.
+
+Desafortunadamente, la red Bitcoin (BTC) no soporta el volumen de la transacción que sería necesario para una plataforma de mensajería ampliamente utilizada. La mayoría de los demás sistemas de criptomonedas tampoco tienen la intención de soportar volúmenes en el orden del correo electrónico, ignorando el correo no deseado. Los que sí apoyan estos volúmenes tienen políticas económicas de gestión centralizada. Dicha gestión les daría autoridad sobre la capacidad de enviar y recibir mensajes.
+
+Por lo tanto, Bitcoin Cash (BCH) fue seleccionado debido a que su mapa de ruta era altamente compatible con los requisitos del proyecto CashWeb. El mapa de ruta Bitcoin Cash enfatiza la importancia de las transacciones instantáneas realizadas a escala global al mismo tiempo que se basa en la prueba de trabajo tokenizada conceptualizada por Satoshi Nakamoto.
+
+\subsubsection{Identidad}
+
+Cada identidad de usuario es pseudónima, y está asociada con una clave pública. Estas identidades públicas pueden generarse fácilmente y de forma económica a partir de una única clave maestra. Cada clave de identidad es reconocida por la red a través de varios pequeños pagos a los mineros de la red Bitcoin Cash. Estos pequeños pagos incluyen un compromiso criptográfico verificable con la identidad que puede demostrar que el pago fue realizado a terceros.
+
+Además, estos seudónimos se pueden hacer de tal manera que se pueda demostrar que se han derivado de otra clave oculta en una fecha posterior. Tales demostraciones permiten que la clave específica asociada con un seudónimo sea revocada y rotada de una manera sin confianza. Esto permite informar a los contactos del seudónimo sin necesidad de restablecer la confianza. Los detalles específicos de estos esquemas de identidad se dejan a las especificaciones detalladas del protocolo, y el protocolo es extensible a los futuros esquemas en caso de que surja una necesidad.
+
+\subsubsection{Formato del Mensaje}
+
+Todos los mensajes dentro del sistema CashWeb utilizan el formato de mensaje de Protocol Buffer\supercite{protobufs}. Los ``Protobufs'' están ahora en un amplio uso, fácil de implementar en una variedad de lenguajes, y serializables de binario.
+
+\subsection{Infraestructura}
+
+\subsubsection{Servidores de Clave}
+
+El protocolo CashWeb incluye una red de servidores de claves que proporcionan un registro de metadatos distribuidos y públicos. El registro está destinado a rastrear pequeñas cantidades de metadatos asociados con claves criptográficas. Cada entrada en los servidores de claves es replicada en toda la red para proporcionar resistencia a la censura. Se incluye un protocolo peer-to-peer que proporciona una coherencia final.
+
+Este metadato es indexado por el hash de la clave pública de los usuarios e incluye dicha clave pública, un cuerpo de información, y una firma que cubre el cuerpo proporcionando integridad, autentificación y no repudio. Las actualizaciones de metadatos están permitidas proporcionando firmas válidas.
+
+La carga de datos al servidor de claves está protegida por un ``protocolo de prueba de pago'' (protocolo POP). Esto proporciona una manera de anclar el valor en cadena a actualizaciones específicas y por lo tanto permite la replicación resistente a DoS en toda la red del servidor de claves.
+
+El servidor de claves CashWeb especializado tiene los siguientes beneficios sobre la infraestructura GPG existente:
+\begin{itemize}
+  \item Los mecanismos Anti-DDoS son considerados desde el principio, por lo que podemos llegar a un diseño general más simple y robusto.
+  \item HTTP2 hace mucho más sencillo interactuar. Es inmediatamente compatible con los balanceadores de carga externos estándares.
+  \item El formato de carga es más conciso que lo que proporcionan los servidores de claves existentes. No obstante, los certificados X.509 también se pueden proporcionar dentro de una entrada asociada a una dirección determinada.
+\end{itemize}
+
+El servidor de claves CashWeb se puede utilizar para una amplia gama de aplicaciones (que son elocuentes a continuación), Sin embargo, nuestro caso de uso principal es grabar un enlace a los mensajes específicos del servidor de retransmisión que gestionan los mensajes del usuario. De esta manera cualquier usuario con acceso a la red del servidor de claves y una dirección alojada, puede buscar la dirección en la red del servidor de claves y luego redirigir a su servidor de retransmisión específico para reiniciar la comunicación. 
+
+Otra función de los servidores de claves es proporcionar revocaciones de claves en caso de que un usuario pierda su clave privada en línea. Los servidores de claves permiten la publicación de nuevas claves a los contactos existentes de una manera sin confianza. Esto permite la rotación de claves en Bitcoin, que ha sido una deficiencia significativa en todas las criptomonedas desde que se escribió el papel blanco de Bitcoin.
+
+\subsubsection{Servidores Repetidores}
+
+Los servidores repetidores proporcionan el propósito combinado de los servidores POP y SMTP. Aceptan mensajes en nombre de los clientes y verifican la integridad básica de estos mensajes. También albergan información sobre el perfil, incluyendo avatares y otra información. Mientras que los servidores repetidores actualmente sólo proporcionan mensajería, nombres de perfil e iconos, el software se puede extender fácilmente para proporcionar mensajes de estado, microblogs y otras funciones potencialmente útiles.
+
+La distinción aquí entre servidores de claves y servidores repetidores se hace debido a la separación de cometidos:
+\begin{itemize}
+  \item Cada servidor de claves proporciona una replicación global y, por lo tanto, resistencia a la censura para pequeñas cantidades de datos no cifrados.
+  \item Los servidores repetidores sirven sólo a usuarios específicos y por lo tanto pueden albergar a bajo coste grandes cantidades de datos personales cifrados.
+\end{itemize}
+
+Abrir una cuenta en un servidor repetidor se realiza mediante una llamada estándar de procedimiento remoto HTTP. El mecanismo de autorización y autenticación se basa en el protocolo POP. Esto permite la creación de cuentas pseudónimas al mismo tiempo que asegura que los servidores de repetidores generen ingresos. Los usuarios pueden migrar fácilmente entre los proveedores de servicios de retransmisión debido a las API estandarizadas de registro de cuenta.
+
+\subsubsection{Formato del Mensaje}
+
+Un cliente de usuario final es necesario para interactuar con este sistema de una manera fácil de usar. El cliente sirve para administrar fondos asociados con el envío y la recepción de mensajes, actualizar servidores de claves sobre qué servidor de repetición el usuario acepta mensajes, y conectarse y procesar los mensajes recibidos de los servidores de retransmisión.
+
+Los clientes de mensajería son la porción más compleja del sistema CashWeb. También debe gestionar la gestión de los fondos digitales utilizados para generar sellos y otros micropagos. También debe asumir la responsabilidad de ser una cartera de criptomonedas. Adicionalmente, la mayoría del protocolo se maneja mediante cargas estructuradas cifradas que el cliente de mensajería necesita para analizar y procesar. Tanto el servidor de claves como el servidor repetidor son en su mayoría agnósticos a los protocolos que las billeteras pueden usar para hablar entre sí.
+
+Esto permite que la funcionalidad evolucione con el tiempo sin necesidad de cambios importantes en la infraestructura de comunicaciones subyacente. Los desarrolladores de monederos pueden añadir y evolucionar la funcionalidad con el tiempo. Las carteras sólo necesitan ignorar los tipos de carga útil que no entienden, al tiempo que permiten cambios de protocolo sin necesidad de un consenso a gran escala sobre los añadidos.
+
+\subsubsection{Protocol Flow}
+
+\begin{figure}[H]
+  \begin{center}
+  \scalebox{.75}{
+      \begin{msc}[c]{Profile Retrieval}
+        \declinst{A}{}{ Client }
+        \declinst{B}{}{ Keyserver }
+        \declinst{C}{}{ Relay Server }
+        \regionstart{activation}{A}
+        \regionstart{activation}{B}
+        \mess{GET /keys/\{address\}}{A}{B}
+        \nextlevel[2]
+        \mess{Metadata}{B}{A}
+        \regionend{B}
+        \nextlevel[1]
+        \action{Extract Relay IP}{A}
+        \nextlevel[2]
+        \regionstart{activation}{C}
+        \mess{GET /profiles/\{address\}}{A}[0.75]{C}
+        \nextlevel[2]
+        \mess{Profile}{C}[0.75]{A}
+        \regionend{A}
+        \regionend{C}
+        \nextlevel[1]
+      \end{msc}
+      }
+  \end{center}
+\end{figure}
+
+\begin{figure}[H]
+  \begin{center}
+    \scalebox{.75}{
+      \begin{msc}[c]{Message Send}
+      \declinst{A}{ }{ Client }
+      \declinst{B}{}{ Keyserver }
+      \declinst{C}{}{ Relay Server }
+      \declinst{D}{}{ Bitcoin Node }
+      \regionstart{activation}{A}
+      \regionstart{activation}{B}
+      \mess{GET /keys/\{address\}}{A}{B}
+      \nextlevel[2]
+      \mess{AddressMetadata}{B}{A}
+      \regionend{B}
+      \nextlevel[1]
+      \action{Extract Relay IP}{A}
+      \nextlevel[2]
+      \regionstart{activation}{C}
+      \mess{PUT /messages/\{address\}}{A}[0.75]{C}
+      \nextlevel[1]
+      \regionstart{activation}{D}
+      \mess{Stamp Transactions}{C}{D}
+      \nextlevel[2]
+      \mess{Accepted}{D}{C}
+      \regionend{D}
+      \nextlevel[1]
+      \mess{Ok}{C}[0.75]{A}
+      \regionend{A}
+      \regionend{C}
+      \nextlevel[1]
+      \end{msc}
+  }
+  \end{center}
+\end{figure}
+
+\sección{Applicaciones}
+
+\subsection{Autenticacion y autorizacion estandarizadas}
+
+El protocolo de prueba de pago (POP) permite el uso estandarizado y sin fisuras de la tecnología HTTP existente pero sin el uso de complicadas infraestructuras de facturación y gestión de cuentas. Permite la compra pseudónima de un token de API JWT\supercite de{rfc7519}, sin requerir un sistema de gestión de cuentas, interfaces de facturación u otra infraestructura complicada.
+
+\subsección{Gestión de identidades distribuida}
+
+Tener una infraestructura estándar del servidor de claves beneficia a un rango de aplicaciones -- como criptográficamente segura, pero actualizable, intercambio de contactos a través de códigos QR u otros medios. La capacidad de rotar esta información permite importantes eventos de revocación y rotación clave. Proporciona un mecanismo integral para gestionar las identidades en línea de una manera descentralizada y sin confianza. Tener una infraestructura de identidad neutral proporciona un fuerte incentivo para la participación de todos los usuarios en línea; a diferencia de los proveedores de identidad centralizados (por ejemplo, Google, Facebook, etc.)
+
+\subsección{Mensajería Abierta}
+
+La combinación del protocolo POP, servidores de claves y servidores repetidores, permite características avanzadas de privacidad y comunicación libre de contenido no deseado. La capacidad de enviar mensajes estructurados con valor adjunto, permite todo tipo de mensajes humano-a-humano, humano a máquina, máquina a persona y procesamiento de mensajes de máquina a máquina. La aplicación más obvia de esto es el pago entre pares y mensajes. Sin embargo, hay potencial para otros servicios tales como ``bots'', mercadotecnias, aplicaciones Web3.0 y protocolos financieros descentralizados.
+
+\section{Conclusion}
+
+El objetivo del protocolo CashWeb es proporcionar resistencia a la censura con soluciones comunes a problemas tecnológicos frente a soluciones que se reinventan continuamente en formas propietarias. CashWeb, al igual que la tecnología de criptomonedas subyacente, permite la desintermediación de la autenticación, la gestión de identidad y el mensaje. Permite el uso sin fisuras de los pagos en toda la infraestructura de Internet sin la introducción de intermediarios financieros autorizados.
+
+Adjuntar pagos a las comunicaciones entre pares permite la interrupción de las estructuras de energía existentes en Internet. La moderación centralizada es obvia, y por lo tanto CashWeb proporciona ``terreno neutral'' digital para la colaboración de todas las partes dispuestas. Elimina el incentivo para las redes de comunicaciones "amuralladas".
+
+La moneda digital combinada con la mensajería, como originalmente imaginó Hal Finney\supercite{finney2004rpow}, proporciona igualdad de condiciones para todos los participantes en el diálogo global. Este es un paso crítico, e infraestructura crítica, para mantener los derechos humanos y la libertad económica a medida que la tecnología sigue evolucionando. También tiene el potencial de cambiar la forma en que los seres humanos se comunican y piensan al permitirnos centrar nuestra atención en la información que es objetivamente valiosa.
+
+Debido a que CashWeb opera en micropagos integrados, los usuarios ya no son un producto.
+
+\printbibliography
+
+\end{document}
